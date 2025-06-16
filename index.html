@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Annotation</title>
+  <!-- Step 1: Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* Full-screen gradient + blurred circles */
+    /* Full-screen gradient background */
     body {
       margin: 0;
       height: 100vh;
@@ -15,42 +16,74 @@
       justify-content: center;
       background: linear-gradient(135deg, #4f9ef6, #6bb9f0, #8ed1f5);
       overflow: hidden;
-      font-family: sans-serif;
+      font-family: 'Montserrat', sans-serif;
     }
+    /* Decorative blobs */
     .blob {
       position: absolute;
       border-radius: 50%;
       mix-blend-mode: multiply;
       filter: blur(100px);
       opacity: 0.6;
+      animation: float 12s ease-in-out infinite;
     }
     .blob.one {
-      width: 300px; height: 300px;
+      width: 300px;
+      height: 300px;
       background: #ff6b6b;
-      top: -100px; left: -100px;
+      top: -100px;
+      left: -100px;
     }
     .blob.two {
-      width: 400px; height: 400px;
+      width: 400px;
+      height: 400px;
       background: #ffd93d;
-      bottom: -150px; right: -150px;
+      bottom: -150px;
+      right: -150px;
+    }
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(20px, -15px) scale(1.05); }
+      100% { transform: translate(0, 0) scale(1); }
     }
 
-    /* Card */
+    /* Card styling */
     .card {
       position: relative;
       background: white;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 24px;
       max-width: 600px;
       width: 100%;
-      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       z-index: 1;
+    }
+    /* Gradient border accent */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+      border-radius: 18px;
+      z-index: -1;
+      filter: blur(8px);
+      opacity: 0.7;
     }
     .card h1 {
       margin: 0 0 16px;
       color: #2c3e50;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
     }
-    .card .paragraph {
+    #question {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    .paragraph {
       max-height: 200px;
       overflow-y: auto;
       background: #f0f8ff;
@@ -58,6 +91,7 @@
       border-radius: 8px;
       line-height: 1.5;
       margin: 16px 0;
+      color: #444;
     }
     .buttons {
       display: flex;
@@ -74,9 +108,9 @@
       transition: transform 0.1s;
     }
     .buttons button:active { transform: scale(0.97); }
-    .btn-partial { background: #ff9f43; }   /* orange */
-    .btn-full    { background: #2ed573; }   /* green */
-    .btn-none    { background: #ff4757; }   /* red */
+    .btn-partial { background: #ff9f43; }
+    .btn-full    { background: #2ed573; }
+    .btn-none    { background: #ff4757; }
   </style>
 </head>
 
