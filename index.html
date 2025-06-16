@@ -131,14 +131,41 @@
   </div>
 </body>
 <script>
-  // Load and parse the CSV
   Papa.parse('data.csv', {
     download: true,
     header: true,
     complete: function(results) {
-      // results.data is an array of objects: { name, question, paragraph }
-      console.log('Parsed CSV:', results.data);
-      // For now, we’re just verifying it loads
+      const rows = results.data; 
+      // 1) Ask for the annotator's name
+      const user = prompt('Please enter your name:');
+      // 2) Filter to this user's assignments
+      const tasks = rows.filter(r => r.name.trim() === user.trim());
+      if (tasks.length === 0) {
+        alert(`No tasks found for “${user}”.`);
+        return;
+      }
+      
+      let idx = 0;
+      // 3) Function to render question & paragraph
+      function showTask(i) {
+        document.getElementById('question').textContent = tasks[i].question;
+        document.getElementById('paragraph').textContent = tasks[i].paragraph;
+      }
+      showTask(idx);
+      
+      // 4) Hook up the buttons
+      document.querySelectorAll('.buttons button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const label = btn.textContent;
+          console.log({ user, question: tasks[idx].question, label });
+          idx++;
+          if (idx < tasks.length) {
+            showTask(idx);
+          } else {
+            alert('All done! Thanks for annotating.');
+          }
+        });
+      });
     }
   });
 </script>
