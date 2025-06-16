@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annotation</title>
+  <style>
+    /* Full-screen gradient + blurred circles */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #4f9ef6, #6bb9f0, #8ed1f5);
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      mix-blend-mode: multiply;
+      filter: blur(100px);
+      opacity: 0.6;
+    }
+    .blob.one {
+      width: 300px; height: 300px;
+      background: #ff6b6b;
+      top: -100px; left: -100px;
+    }
+    .blob.two {
+      width: 400px; height: 400px;
+      background: #ffd93d;
+      bottom: -150px; right: -150px;
+    }
+
+    /* Card */
+    .card {
+      position: relative;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 600px;
+      width: 100%;
+      padding: 24px;
+      z-index: 1;
+    }
+    .card h1 {
+      margin: 0 0 16px;
+      color: #2c3e50;
+    }
+    .card .paragraph {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #f0f8ff;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      margin: 16px 0;
+    }
+    .buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .buttons button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.1s;
+    }
+    .buttons button:active { transform: scale(0.97); }
+    .btn-partial { background: #ff9f43; }   /* orange */
+    .btn-full    { background: #2ed573; }   /* green */
+    .btn-none    { background: #ff4757; }   /* red */
+  </style>
+</head>
+
+<body>
+  <div class="blob one"></div>
+  <div class="blob two"></div>
+
+  <div class="card">
+    <h1>Annotate Question</h1>
+    <div id="question">[Question will go here]</div>
+    <div class="paragraph" id="paragraph">[Paragraph text will go here]</div>
+    <div class="buttons">
+      <button class="btn-partial">Partially Relevant</button>
+      <button class="btn-full">Fully Relevant</button>
+      <button class="btn-none">Not Relevant</button>
+    </div>
+  </div>
+</body>
+</html>
