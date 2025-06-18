@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annotation</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '\\(', right: '\\)', display: false}
+            ]
+          });"></script>
+
+  <!-- SheetJS for XLSX parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* ... your existing styles ... */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #4f9ef6, #6bb9f0, #8ed1f5);
+      overflow: hidden;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .blob { /* ... same as before ... */ }
+    .card {
+      position: relative;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+    .card::before { /* gradient border ... */ }
+    .card h1 { /* ... */ }
+    #question { font-weight:500; color:#333; margin-bottom:12px; }
+    .paragraph {
+      max-height:200px; overflow-y:auto;
+      background:#f0f8ff; padding:12px; border-radius:8px;
+      line-height:1.5; margin:16px 0; color:#444;
+    }
+    .buttons { display:flex; gap:8px; }
+    .buttons button {
+      flex:1; padding:12px; border:none;
+      border-radius:8px; font-size:1rem;
+      cursor:pointer; color:white;
+      transition:transform .1s;
+    }
+    .buttons button:active { transform:scale(.97); }
+    .grade-1 { background:#ff4757; }  /* irrelevant */
+    .grade-2 { background:#ff9f43; }  /* partially but prone irrelevant */
+    .grade-3 { background:#f1c40f; }  /* hard to decide */
+    .grade-4 { background:#1e90ff; }  /* partially but prone relevant */
+    .grade-5 { background:#2ed573; }  /* relevant */
+  </style>
+</head>
+
+<body>
+  <div class="blob one"></div>
+  <div class="blob two"></div>
+
+  <div class="card">
+    <h1>Annotate Question</h1>
+    <div id="question">Loading…</div>
+    <div class="paragraph" id="paragraph">Loading…</div>
+    <div class="buttons">
+      <button class="grade-1" data-value="1">1 – Irrelevant</button>
+      <button class="grade-2" data-value="2">2 – Partially (prone irrelevant)</button>
+      <button class="grade-3" data-value="3">3 – Hard to decide</button>
+      <button class="grade-4" data-value="4">4 – Partially (prone relevant)</button>
+      <button class="grade-5" data-value="5">5 – Relevant</button>
+    </div>
+  </div>
+
+  <script>
+    let rows, tasks, idx = 0, annotations = [];
+
+    // 1) load the XLSX
+    fetch('Final_annotation_disprepancy.xlsx')
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const wb = XLSX.read(buffer, {type:'array'});
+        rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+        askName();
+      });
+
+    function askName() {
+      const user = prompt('Please enter your Name:').trim();
+      tasks = rows.filter(r => String(r.Name).trim() === user);
+      if (!tasks.length) {
+        alert(`No tasks found for “${user}”.`);
+        return;
+      }
+      showTask();
+    }
+
+    function showTask() {
+      const t = tasks[idx];
+      document.getElementById('question').textContent = t.Question;
+      // insert raw HTML so KaTeX auto-render picks it up
+      document.getElementById('paragraph').innerHTML = t.chunk_text;
+      // re-render math in case of new content
+      renderMathInElement(
+        document.getElementById('paragraph'),
+        {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\(', right: '\\)', display: false}
+          ]
+        }
+      );
+    }
+
+    // 2) wire up buttons
+    document.querySelectorAll('.buttons button').forEach(btn=> {
+      btn.addEventListener('click', ()=>{
+        const label = btn.getAttribute('data-value');
+        const base = tasks[idx];
+        // record ALL original cols + label + timestamp
+        const entry = {...base,
+                       label,
+                       timestamp: new Date().toISOString()};
+        annotations.push(entry);
+
+        idx++;
+        if (idx < tasks.length) {
+          showTask();
+        } else {
+          downloadCSV();
+        }
+      });
+    });
+
+    function downloadCSV() {
+      alert('All done! Preparing your annotations…');
+      const cols = Object.keys(annotations[0]);
+      const header = cols.join(',');
+      const lines = annotations.map(r =>
+        cols.map(c=> `"${String(r[c]||'').replace(/"/g,'""')}"`).join(',')
+      );
+      const csv = [header, ...lines].join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `annotations_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
