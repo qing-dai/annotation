@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Annotation</title>
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
 
@@ -14,15 +15,16 @@
           onload="renderMathInElement(document.body, {
             delimiters: [
               {left: '$$', right: '$$', display: true},
-              {left: '\\(', right: '\\)', display: false}
+              {left: '\\(', right: '\\)', display: false},
+              {left: '$',  right: '$',  display: false}
             ]
-          });"></script>
+          });">
+  </script>
 
   <!-- SheetJS for XLSX parsing -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
-    /* ... your existing styles ... */
     body {
       margin: 0;
       height: 100vh;
@@ -33,7 +35,29 @@
       overflow: hidden;
       font-family: 'Montserrat', sans-serif;
     }
-    .blob { /* ... same as before ... */ }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      mix-blend-mode: multiply;
+      filter: blur(100px);
+      opacity: 0.6;
+      animation: float 12s ease-in-out infinite;
+    }
+    .blob.one {
+      width: 300px; height: 300px;
+      background: #ff6b6b;
+      top: -100px; left: -100px;
+    }
+    .blob.two {
+      width: 400px; height: 400px;
+      background: #ffd93d;
+      bottom: -150px; right: -150px;
+    }
+    @keyframes float {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(20px, -15px) scale(1.05); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
     .card {
       position: relative;
       background: white;
@@ -44,27 +68,57 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       z-index: 1;
     }
-    .card::before { /* gradient border ... */ }
-    .card h1 { /* ... */ }
-    #question { font-weight:500; color:#333; margin-bottom:12px; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+      border-radius: 18px;
+      z-index: -1;
+      filter: blur(8px);
+      opacity: 0.7;
+    }
+    .card h1 {
+      margin: 0 0 16px;
+      color: #2c3e50;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+    }
+    #question {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 12px;
+    }
     .paragraph {
-      max-height:200px; overflow-y:auto;
-      background:#f0f8ff; padding:12px; border-radius:8px;
-      line-height:1.5; margin:16px 0; color:#444;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #f0f8ff;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      margin: 16px 0;
+      color: #444;
     }
-    .buttons { display:flex; gap:8px; }
+    .buttons {
+      display: flex;
+      gap: 8px;
+    }
     .buttons button {
-      flex:1; padding:12px; border:none;
-      border-radius:8px; font-size:1rem;
-      cursor:pointer; color:white;
-      transition:transform .1s;
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.1s;
     }
-    .buttons button:active { transform:scale(.97); }
-    .grade-1 { background:#ff4757; }  /* irrelevant */
-    .grade-2 { background:#ff9f43; }  /* partially but prone irrelevant */
-    .grade-3 { background:#f1c40f; }  /* hard to decide */
-    .grade-4 { background:#1e90ff; }  /* partially but prone relevant */
-    .grade-5 { background:#2ed573; }  /* relevant */
+    .buttons button:active { transform: scale(0.97); }
+    .grade-1 { background: #ff4757; }
+    .grade-2 { background: #ff9f43; }
+    .grade-3 { background: #f1c40f; }
+    .grade-4 { background: #1e90ff; }
+    .grade-5 { background: #2ed573; }
   </style>
 </head>
 
@@ -88,87 +142,74 @@
   <script>
     let rows, tasks, idx = 0, annotations = [];
 
-    // 1) load the XLSX
+    // 1) load & normalize the XLSX
     fetch('Final_annotation_disprepancy.xlsx')
       .then(res => res.arrayBuffer())
       .then(buffer => {
-        const wb = XLSX.read(buffer, {type:'array'});
+        const wb  = XLSX.read(buffer, { type: 'array' });
         const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-
-      // normalize headers: trim + lowercase
-      rows = raw.map(row => {
-        const norm = {};
-        for (let key in row) {
-          norm[key.trim().toLowerCase()] = row[key];
-        }
-        return norm;
+        // normalize headers to lowercase keys
+        rows = raw.map(r => {
+          const norm = {};
+          for (let k in r) norm[k.trim().toLowerCase()] = r[k];
+          return norm;
+        });
+        askName();
       });
 
-      askName();
-      });
-      
-  function askName() {
-    const user = prompt('Please enter your Name:').trim().toLowerCase();
-    // filter on the normalized “name” field
-    tasks = rows.filter(r => String(r.name || '').trim().toLowerCase() === user);
-    if (!tasks.length) {
-      // debugging: list actual names we saw
-      const names = [...new Set(rows.map(r => r.name.trim()))].join(', ');
-      alert(`No tasks for “${user}”. I found these names in the sheet:\n${names}`);
-      return;
+    function askName() {
+      const user = prompt('Please enter your Name:').trim().toLowerCase();
+      tasks = rows.filter(r => String(r.name || '').trim().toLowerCase() === user);
+      if (!tasks.length) {
+        const names = [...new Set(rows.map(r => r.name.trim()))].join(', ');
+        alert(`No tasks for “${user}”. Found these names:\n${names}`);
+        return;
+      }
+      showTask();
     }
-    showTask();
-  }
 
     function showTask() {
       const t = tasks[idx];
-      document.getElementById('question').textContent = t.Question;
-      // insert raw HTML so KaTeX auto-render picks it up
-      document.getElementById('paragraph').innerHTML = t.chunk_text;
-      // re-render math in case of new content
-      renderMathInElement(
-        document.getElementById('paragraph'),
-        {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '\\(', right: '\\)', display: false}
-          ]
-        }
-      );
+      document.getElementById('question').textContent = t.question;
+      const para = document.getElementById('paragraph');
+      para.innerHTML = t.chunk_text;
+      // re-render math in just this element
+      renderMathInElement(para, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '$',  right: '$',  display: false}
+        ]
+      });
     }
 
-    // 2) wire up buttons
-    document.querySelectorAll('.buttons button').forEach(btn=> {
-      btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.buttons button').forEach(btn => {
+      btn.addEventListener('click', () => {
         const label = btn.getAttribute('data-value');
-        const base = tasks[idx];
-        // record ALL original cols + label + timestamp
-        const entry = {...base,
-                       label,
-                       timestamp: new Date().toISOString()};
-        annotations.push(entry);
-
+        const base  = tasks[idx];
+        annotations.push({
+          ...base,
+          label,
+          timestamp: new Date().toISOString()
+        });
         idx++;
-        if (idx < tasks.length) {
-          showTask();
-        } else {
-          downloadCSV();
-        }
+        if (idx < tasks.length) showTask();
+        else downloadCSV();
       });
     });
 
     function downloadCSV() {
-      alert('All done! Preparing your annotations…');
+      alert('All done! Preparing download.');
       const cols = Object.keys(annotations[0]);
       const header = cols.join(',');
-      const lines = annotations.map(r =>
-        cols.map(c=> `"${String(r[c]||'').replace(/"/g,'""')}"`).join(',')
+      const lines  = annotations.map(r =>
+        cols.map(c => `"${String(r[c]||'').replace(/"/g,'""')}"`).join(',')
       );
       const csv = [header, ...lines].join('\n');
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
       a.download = `annotations_${Date.now()}.csv`;
       document.body.appendChild(a);
       a.click();
