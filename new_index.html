@@ -93,19 +93,32 @@
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb = XLSX.read(buffer, {type:'array'});
-        rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
-        askName();
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+
+      // normalize headers: trim + lowercase
+      rows = raw.map(row => {
+        const norm = {};
+        for (let key in row) {
+          norm[key.trim().toLowerCase()] = row[key];
+        }
+        return norm;
       });
 
-    function askName() {
-      const user = prompt('Please enter your Name:').trim();
-      tasks = rows.filter(r => String(r.Name).trim() === user);
-      if (!tasks.length) {
-        alert(`No tasks found for “${user}”.`);
-        return;
-      }
-      showTask();
+      askName();
+      });
+      
+  function askName() {
+    const user = prompt('Please enter your Name:').trim().toLowerCase();
+    // filter on the normalized “name” field
+    tasks = rows.filter(r => String(r.name || '').trim().toLowerCase() === user);
+    if (!tasks.length) {
+      // debugging: list actual names we saw
+      const names = [...new Set(rows.map(r => r.name.trim()))].join(', ');
+      alert(`No tasks for “${user}”. I found these names in the sheet:\n${names}`);
+      return;
     }
+    showTask();
+  }
 
     function showTask() {
       const t = tasks[idx];
