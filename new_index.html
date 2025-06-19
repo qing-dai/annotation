@@ -90,7 +90,8 @@
       margin-bottom: 12px;
     }
     .paragraph {
-      max-height: 200px;
+      max-height: 60vh;
+      min-height: 300px;
       overflow-y: auto;
       background: #f0f8ff;
       padding: 12px;
@@ -143,7 +144,7 @@
     let rows, tasks, idx = 0, annotations = [];
 
     // 1) load & normalize the XLSX
-    fetch('Final_annotation_disprepancy_latex_fixed.xlsx')
+    fetch('Rasmus_high_confidence_for_annotation_latex_fixed.xlsx')
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb  = XLSX.read(buffer, { type: 'array' });
