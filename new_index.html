@@ -143,7 +143,7 @@
     let rows, tasks, idx = 0, annotations = [];
 
     // 1) load & normalize the XLSX
-    fetch('Final_annotation_disprepancy.xlsx')
+    fetch('Final_annotation_disprepancy_latex_fixed.xlsx')
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb  = XLSX.read(buffer, { type: 'array' });
