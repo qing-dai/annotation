@@ -8,132 +8,41 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- KaTeX for math rendering -->
+  <!-- KaTeX -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"
-          onload="renderMathInElement(document.body, {
-            delimiters: [
-              {left: '$$', right: '$$', display: true},
-              {left: '\\(', right: '\\)', display: false},
-              {left: '$',  right: '$',  display: false}
-            ]
-          });">
-  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
 
-  <!-- SheetJS for XLSX parsing -->
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #4f9ef6, #6bb9f0, #8ed1f5);
-      overflow: hidden;
-      font-family: 'Montserrat', sans-serif;
-    }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      mix-blend-mode: multiply;
-      filter: blur(100px);
-      opacity: 0.6;
-      animation: float 12s ease-in-out infinite;
-    }
-    .blob.one {
-      width: 300px; height: 300px;
-      background: #ff6b6b;
-      top: -100px; left: -100px;
-    }
-    .blob.two {
-      width: 400px; height: 400px;
-      background: #ffd93d;
-      bottom: -150px; right: -150px;
-    }
-    @keyframes float {
-      0%   { transform: translate(0, 0) scale(1); }
-      50%  { transform: translate(20px, -15px) scale(1.05); }
-      100% { transform: translate(0, 0) scale(1); }
-    }
-    .card {
-      position: relative;
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 800px;
-      width: 100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      z-index: 1;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: -2px; left: -2px; right: -2px; bottom: -2px;
-      background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
-      border-radius: 18px;
-      z-index: -1;
-      filter: blur(8px);
-      opacity: 0.7;
-    }
-    .card h1 {
-      margin: 0 0 16px;
-      color: #2c3e50;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.75rem;
-    }
-    #question {
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 12px;
-    }
-    .paragraph {
-      max-height: 60vh;
-      min-height: 300px;
-      overflow-y: auto;
-      background: #f0f8ff;
-      padding: 12px;
-      border-radius: 8px;
-      line-height: 1.5;
-      margin: 16px 0;
-      color: #444;
-    }
-    .buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .buttons button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      color: white;
-      transition: transform 0.1s;
-    }
-    .buttons button:active { transform: scale(0.97); }
-    .grade-1 { background: #ff4757; }
-    .grade-2 { background: #ff9f43; }
-    .grade-3 { background: #f1c40f; }
-    .grade-4 { background: #1e90ff; }
-    .grade-5 { background: #2ed573; }
-    .back-btn{
-        background: #576574;
-        margin-right:auto;
-    }
+    body {margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4f9ef6,#6bb9f0,#8ed1f5);overflow:hidden;font-family:'Montserrat',sans-serif;}
+    .card, .desc-card {position:relative;background:white;border-radius:16px;padding:24px;max-width:800px;width:90vw;box-shadow:0 10px 30px rgba(0,0,0,0.1);z-index:1;}
+    .card::before, .desc-card::before {content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;background:linear-gradient(45deg,#ff6b6b,#feca57,#48dbfb);border-radius:18px;z-index:-1;filter:blur(8px);opacity:0.7;}
+    h1 {margin:0 0 16px;color:#2c3e50;font-family:'Playfair Display',serif;font-size:1.75rem;}
+    #description-text{color:#333;line-height:1.5;}
+    #question{font-weight:500;color:#333;margin-bottom:12px;}
+    .paragraph{max-height:60vh;min-height:300px;overflow-y:auto;background:#f0f8ff;padding:12px;border-radius:8px;line-height:1.5;margin:16px 0;color:#444;}
+    .buttons{display:flex;gap:8px;margin-top:8px;}
+    .buttons button{flex:1;padding:12px;border:none;border-radius:8px;font-size:1rem;cursor:pointer;color:white;transition:transform .1s;}
+    .buttons button:active{transform:scale(.97);}
+    .grade-1{background:#ff4757;} .grade-2{background:#ff9f43;} .grade-3{background:#f1c40f;} .grade-4{background:#1e90ff;} .grade-5{background:#2ed573;} .back-btn{background:#576574;margin-right:auto;}
   </style>
 </head>
-
 <body>
-  <div class="blob one"></div>
-  <div class="blob two"></div>
+  <div class="blob one"></div><div class="blob two"></div>
 
-  <div class="card">
-    <h1>Annotate Question: how relevant is below paragraph to the question...</h1>
+  <!-- Description card -->
+  <div class="desc-card" id="descCard" style="display:none;">
+    <h1 id="descTitle">Instructions</h1>
+    <div id="description-text"></div>
+    <div class="buttons"><button id="startBtn" style="background:#1e90ff;">Start Annotation</button></div>
+  </div>
+
+  <!-- Annotation card -->
+  <div class="card" id="annoCard" style="display:none;">
+    <h1>Annotate Question</h1>
     <div id="question">Loading…</div>
     <div class="paragraph" id="paragraph">Loading…</div>
     <div class="buttons">
@@ -147,92 +56,59 @@
   </div>
 
   <script>
-    let rows, tasks, idx = 0, annotations = [];
+    let rows, tasks, idx=0, annotations=[], currentType="", typesOrder=[];
 
-    // 1) load & normalize the XLSX
-    fetch('high_confidence_for_annotation_latex_fixed.xlsx')
-      .then(res => res.arrayBuffer())
-      .then(buffer => {
-        const wb  = XLSX.read(buffer, { type: 'array' });
-        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-        // normalize headers to lowercase keys
-        rows = raw.map(r => {
-          const norm = {};
-          for (let k in r) norm[k.trim().toLowerCase()] = r[k];
-          return norm;
-        });
-        askName();
-      });
+    fetch('high_confidence_for_annotation_latex_fixed.xlsx').then(r=>r.arrayBuffer()).then(buf=>{
+      const wb=XLSX.read(buf,{type:'array'}), raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      rows = raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
+      askName();
+    });
 
-    function askName() {
+    function askName(){
       const user = prompt('Please enter your Name:').trim().toLowerCase();
-      tasks = rows.filter(r => String(r.name || '').trim().toLowerCase() === user);
-      if (!tasks.length) {
-        const names = [...new Set(rows.map(r => r.name.trim()))].join(', ');
-        alert(`No tasks for “${user}”. Found these names:\n${names}`);
-        return;
-      }
-      showTask();
+      tasks = rows.filter(r=> (r.name||'').trim().toLowerCase()===user);
+      if(!tasks.length){alert(`No tasks for “${user}”.`);return;} 
+      // determine order of types
+      typesOrder = [...new Set(tasks.map(r=>r.task_type))];
+      idx = 0; annotations = [];
+      showDescription();
     }
 
-    function showTask() {
+    function showDescription(){
+      currentType = typesOrder.shift();
+      document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
+      document.getElementById('description-text').textContent = 
+        currentType==='uncertain'
+        ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky?'
+        : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
+      document.getElementById('descCard').style.display='block';
+      document.getElementById('annoCard').style.display='none';
+    }
+
+    document.getElementById('startBtn').addEventListener('click',()=>{
+      // filter tasks to this type
+      tasks = rows.filter(r=> (r.name||'').trim().toLowerCase()=== (prompt('Please enter your Name:').trim().toLowerCase()) && r.task_type===currentType);
+      idx=0; annotations.push({}); annotations.pop(); // reset
+      document.getElementById('descCard').style.display='none';
+      showTask();
+    });
+
+    function showTask(){
       const t = tasks[idx];
       document.getElementById('question').textContent = t.question;
-      const para = document.getElementById('paragraph');
-      para.innerHTML = t.chunk_text;
-      // re-render math in just this element
-      renderMathInElement(para, {
-        delimiters: [
-          {left: '$$', right: '$$', display: true},
-          {left: '\\(', right: '\\)', display: false},
-          {left: '$',  right: '$',  display: false}
-        ]
-      });
-      // disable back button if at start
-      document.getElementById('backBtn').disabled = (idx === 0);
+      const para=document.getElementById('paragraph'); para.innerHTML=t.chunk_text;
+      renderMathInElement(para,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}]});
+      document.getElementById('annoCard').style.display='block';
+      document.getElementById('backBtn').disabled = idx===0;
     }
 
-    document.getElementById('backBtn').addEventListener('click', () => {
-      if (idx > 0) {
-        idx--;
-        annotations.pop(); // remove last annotation
-        showTask();
-      }
-    });
+    document.getElementById('backBtn').addEventListener('click',()=>{ if(idx>0){idx--;annotations.pop();showTask();}});
+    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5').forEach(btn=>btn.addEventListener('click',()=>{
+      annotations.push({...tasks[idx],label:btn.dataset.value,timestamp:new Date().toISOString()});idx++;
+      if(idx<tasks.length) showTask(); else if(typesOrder.length) showDescription(); else downloadCSV();
+    }));
 
-    document.querySelectorAll('.grade-1, .grade-2, .grade-3, .grade-4, .grade-5').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const label = btn.getAttribute('data-value');
-        const base  = tasks[idx];
-        annotations.push({
-          ...base,
-          label,
-          timestamp: new Date().toISOString()
-        });
-        idx++;
-        if (idx < tasks.length) showTask();
-        else downloadCSV();
-      });
-    });
-
-    function downloadCSV() {
-      alert('All done! Preparing download.');
-      const cols = Object.keys(annotations[0]);
-      const header = cols.join(',');
-      const lines  = annotations.map(r =>
-        cols.map(c => `"${String(r[c]||'').replace(/"/g,'""')}"`).join(',')
-      );
-      const csv = [header, ...lines].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `annotations_${Date.now()}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
+    function downloadCSV(){ const cols=Object.keys(annotations[0]);const header=cols.join(',');const lines=annotations.map(r=>cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','));const csv=[header,...lines].join('\n');const blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`annotations_${Date.now()}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}  
   </script>
 </body>
 </html>
