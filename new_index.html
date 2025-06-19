@@ -63,7 +63,7 @@
       background: white;
       border-radius: 16px;
       padding: 24px;
-      max-width: 600px;
+      max-width: 800px;
       width: 100%;
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       z-index: 1;
@@ -103,6 +103,7 @@
     .buttons {
       display: flex;
       gap: 8px;
+      margin-top: 8px;
     }
     .buttons button {
       flex: 1;
@@ -120,6 +121,10 @@
     .grade-3 { background: #f1c40f; }
     .grade-4 { background: #1e90ff; }
     .grade-5 { background: #2ed573; }
+    .back-btn{
+        background: #576574;
+        margin-right:auto;
+    }
   </style>
 </head>
 
@@ -128,10 +133,11 @@
   <div class="blob two"></div>
 
   <div class="card">
-    <h1>Annotate Question</h1>
+    <h1>Annotate Question: how relevant is below paragraph to the question...</h1>
     <div id="question">Loading…</div>
     <div class="paragraph" id="paragraph">Loading…</div>
     <div class="buttons">
+      <button id="backBtn" class="back-btn">← Back</button>
       <button class="grade-1" data-value="1">1 – Irrelevant</button>
       <button class="grade-2" data-value="2">2 – Partially (prone irrelevant)</button>
       <button class="grade-3" data-value="3">3 – Hard to decide</button>
@@ -182,9 +188,19 @@
           {left: '$',  right: '$',  display: false}
         ]
       });
+      // disable back button if at start
+      document.getElementById('backBtn').disabled = (idx === 0);
     }
 
-    document.querySelectorAll('.buttons button').forEach(btn => {
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (idx > 0) {
+        idx--;
+        annotations.pop(); // remove last annotation
+        showTask();
+      }
+    });
+
+    document.querySelectorAll('.grade-1, .grade-2, .grade-3, .grade-4, .grade-5').forEach(btn => {
       btn.addEventListener('click', () => {
         const label = btn.getAttribute('data-value');
         const base  = tasks[idx];
