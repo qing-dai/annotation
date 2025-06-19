@@ -144,7 +144,7 @@
     let rows, tasks, idx = 0, annotations = [];
 
     // 1) load & normalize the XLSX
-    fetch('Rasmus_high_confidence_for_annotation_latex_fixed.xlsx')
+    fetch('high_confidence_for_annotation_latex_fixed.xlsx')
       .then(res => res.arrayBuffer())
       .then(buffer => {
         const wb  = XLSX.read(buffer, { type: 'array' });
