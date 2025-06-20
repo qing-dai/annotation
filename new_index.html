@@ -67,10 +67,13 @@
 
     function askName() {
       currentUser = prompt('Please enter your Name:').trim().toLowerCase();
-      allUserTasks = rows.filter(r=> (r.name||'').trim().toLowerCase() === currentUser);
+      allUserTasks = rows.filter(r => (r.name||'').trim().toLowerCase() === currentUser);
       if (!allUserTasks.length) { alert(`No tasks for “${currentUser}”.`); return; }
-      typesOrder = [...new Set(allUserTasks.map(r=>r.task_type))];
+      typesOrder = [...new Set(allUserTasks.map(r => r.task_type))];
+      idx = 0;
+      annotations = [];  // initialize once here for both types
       showDescription();
+    }
     }
 
     function showDescription() {
@@ -83,10 +86,11 @@
       document.getElementById('annoCard').style.display='none';
     }
 
-    document.getElementById('startBtn').addEventListener('click', ()=>{
-      tasks = allUserTasks.filter(r=> r.task_type === currentType);
-      idx = 0; annotations = [];
-      document.getElementById('descCard').style.display='none';
+    document.getElementById('startBtn').addEventListener('click', () => {
+      tasks = allUserTasks.filter(r => r.task_type === currentType);
+      idx = 0;
+      // do NOT reset annotations here, preserve earlier type annotations
+      document.getElementById('descCard').style.display = 'none';
       showTask();
     });
 
