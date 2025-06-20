@@ -97,7 +97,7 @@
       currentType = typesOrder.shift();
       document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
       document.getElementById('description-text').textContent = currentType==='uncertain'
-        ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky?'
+        ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky? I will appreciate your insights!'
         : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
       document.getElementById('descCard').style.display = 'block';
       document.getElementById('annoCard').style.display = 'none';
