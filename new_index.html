@@ -54,42 +54,52 @@
   </div>
 
   <script>
-    let rows, allUserTasks, tasks, idx=0, annotations=[], typesOrder=[], currentUser='', currentType='';
+    let rows, allUserTasks, tasks, idx = 0, annotations = [], typesOrder = [], currentUser = '', currentType = '';
 
+    // Load and then ask for user immediately
     fetch('high_confidence_for_annotation_latex_fixed.xlsx')
-      .then(res=>res.arrayBuffer())
-      .then(buffer=>{
-        const wb = XLSX.read(buffer,{type:'array'});
-        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-        rows = raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
+        const wb = XLSX.read(buffer, { type: 'array' });
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        rows = raw.map(r => Object.fromEntries(
+          Object.entries(r).map(([k, v]) => [k.trim().toLowerCase(), v])
+        ));
         askName();
       });
 
     function askName() {
       currentUser = prompt('Please enter your Name:').trim().toLowerCase();
-      allUserTasks = rows.filter(r => (r.name||'').trim().toLowerCase() === currentUser);
-      if (!allUserTasks.length) { alert(`No tasks for “${currentUser}”.`); return; }
+      if (!currentUser) return;
+      allUserTasks = rows.filter(r => (r.name || '').trim().toLowerCase() === currentUser);
+      if (!allUserTasks.length) {
+        const names = [...new Set(rows.map(r => r.name.trim()))].join(', ');
+        alert(`No tasks for “${currentUser}”. Found: ${names}`);
+        askName();
+        return;
+      }
+      // Determine sequence of types
       typesOrder = [...new Set(allUserTasks.map(r => r.task_type))];
       idx = 0;
-      annotations = [];  // initialize once here for both types
+      annotations = [];
       showDescription();
-    }
     }
 
     function showDescription() {
       currentType = typesOrder.shift();
-      document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
-      document.getElementById('description-text').textContent = currentType==='uncertain'
-        ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky?'
-        : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
-      document.getElementById('descCard').style.display='block';
-      document.getElementById('annoCard').style.display='none';
+      document.getElementById('descTitle').textContent =
+        currentType === 'uncertain' ? 'Uncertain Tasks' : 'High Confidence Tasks';
+      document.getElementById('description-text').textContent =
+        currentType === 'uncertain'
+          ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky?'
+          : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
+      document.getElementById('descCard').style.display = 'block';
+      document.getElementById('annoCard').style.display = 'none';
     }
 
     document.getElementById('startBtn').addEventListener('click', () => {
       tasks = allUserTasks.filter(r => r.task_type === currentType);
       idx = 0;
-      // do NOT reset annotations here, preserve earlier type annotations
       document.getElementById('descCard').style.display = 'none';
       showTask();
     });
@@ -97,31 +107,60 @@
     function showTask() {
       const t = tasks[idx];
       document.getElementById('question').textContent = t.question;
-      const para = document.getElementById('paragraph'); para.innerHTML = t.chunk_text;
-      renderMathInElement(para, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}]});
-      document.getElementById('annoCard').style.display='block';
-      document.getElementById('backBtn').disabled = (idx===0);
+      const para = document.getElementById('paragraph');
+      para.innerHTML = t.chunk_text;
+      renderMathInElement(para, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '$', right: '$', display: false },
+        ],
+      });
+      document.getElementById('annoCard').style.display = 'block';
+      document.getElementById('backBtn').disabled = idx === 0;
     }
 
-    document.getElementById('backBtn').addEventListener('click', ()=>{
-      if (idx>0) { idx--; annotations.pop(); showTask(); }
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (idx > 0) {
+        idx--;
+        annotations.pop();
+        showTask();
+      }
     });
 
-    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5').forEach(btn=>btn.addEventListener('click', ()=>{
-      annotations.push({...tasks[idx], label: btn.dataset.value, timestamp: new Date().toISOString()});
-      idx++;
-      if (idx < tasks.length) showTask();
-      else if (typesOrder.length) showDescription();
-      else downloadCSV();
-    }));
+    document.querySelectorAll('.grade-1, .grade-2, .grade-3, .grade-4, .grade-5')
+      .forEach(btn =>
+        btn.addEventListener('click', () => {
+          annotations.push({ ...tasks[idx], label: btn.dataset.value, timestamp: new Date().toISOString() });
+          idx++;
+          if (idx < tasks.length) {
+            showTask();
+          } else if (typesOrder.length) {
+            showDescription();
+          } else {
+            downloadCSV();
+          }
+        })
+      );
 
     function downloadCSV() {
       const cols = Object.keys(annotations[0]);
       const header = cols.join(',');
-      const lines = annotations.map(r=> cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','));
+      const lines = annotations.map(r =>
+        cols
+          .map(c => `"${String(r[c] || '').replace(/"/g, '""')}"`)
+          .join(',')
+      );
       const csv = [header, ...lines].join('\n');
-      const blob = new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
-      a.href=url; a.download=`annotations_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `annotations_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
