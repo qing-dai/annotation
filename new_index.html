@@ -33,14 +33,12 @@
 <body>
   <div class="blob one"></div><div class="blob two"></div>
 
-  <!-- Description card -->
   <div class="desc-card" id="descCard" style="display:none;">
     <h1 id="descTitle">Instructions</h1>
     <div id="description-text"></div>
     <div class="buttons"><button id="startBtn" style="background:#1e90ff;">Start Annotation</button></div>
   </div>
 
-  <!-- Annotation card -->
   <div class="card" id="annoCard" style="display:none;">
     <h1>Annotate Question</h1>
     <div id="question">Loading…</div>
@@ -56,59 +54,71 @@
   </div>
 
   <script>
-    let rows, tasks, idx=0, annotations=[], currentType="", typesOrder=[];
+    let rows, allUserTasks, tasks, idx=0, annotations=[], typesOrder=[], currentUser='', currentType='';
 
-    fetch('high_confidence_for_annotation_latex_fixed.xlsx').then(r=>r.arrayBuffer()).then(buf=>{
-      const wb=XLSX.read(buf,{type:'array'}), raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-      rows = raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
-      askName();
-    });
+    fetch('high_confidence_for_annotation_latex_fixed.xlsx')
+      .then(res=>res.arrayBuffer())
+      .then(buffer=>{
+        const wb = XLSX.read(buffer,{type:'array'});
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+        rows = raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
+        askName();
+      });
 
-    function askName(){
-      const user = prompt('Please enter your Name:').trim().toLowerCase();
-      tasks = rows.filter(r=> (r.name||'').trim().toLowerCase()===user);
-      if(!tasks.length){alert(`No tasks for “${user}”.`);return;} 
-      // determine order of types
-      typesOrder = [...new Set(tasks.map(r=>r.task_type))];
-      idx = 0; annotations = [];
+    function askName() {
+      currentUser = prompt('Please enter your Name:').trim().toLowerCase();
+      allUserTasks = rows.filter(r=> (r.name||'').trim().toLowerCase() === currentUser);
+      if (!allUserTasks.length) { alert(`No tasks for “${currentUser}”.`); return; }
+      typesOrder = [...new Set(allUserTasks.map(r=>r.task_type))];
       showDescription();
     }
 
-    function showDescription(){
+    function showDescription() {
       currentType = typesOrder.shift();
       document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
-      document.getElementById('description-text').textContent = 
-        currentType==='uncertain'
+      document.getElementById('description-text').textContent = currentType==='uncertain'
         ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky?'
         : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
       document.getElementById('descCard').style.display='block';
       document.getElementById('annoCard').style.display='none';
     }
 
-    document.getElementById('startBtn').addEventListener('click',()=>{
-      // filter tasks to this type
-      tasks = rows.filter(r=> (r.name||'').trim().toLowerCase()=== (prompt('Please enter your Name:').trim().toLowerCase()) && r.task_type===currentType);
-      idx=0; annotations.push({}); annotations.pop(); // reset
+    document.getElementById('startBtn').addEventListener('click', ()=>{
+      tasks = allUserTasks.filter(r=> r.task_type === currentType);
+      idx = 0; annotations = [];
       document.getElementById('descCard').style.display='none';
       showTask();
     });
 
-    function showTask(){
+    function showTask() {
       const t = tasks[idx];
       document.getElementById('question').textContent = t.question;
-      const para=document.getElementById('paragraph'); para.innerHTML=t.chunk_text;
-      renderMathInElement(para,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}]});
+      const para = document.getElementById('paragraph'); para.innerHTML = t.chunk_text;
+      renderMathInElement(para, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}]});
       document.getElementById('annoCard').style.display='block';
-      document.getElementById('backBtn').disabled = idx===0;
+      document.getElementById('backBtn').disabled = (idx===0);
     }
 
-    document.getElementById('backBtn').addEventListener('click',()=>{ if(idx>0){idx--;annotations.pop();showTask();}});
-    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5').forEach(btn=>btn.addEventListener('click',()=>{
-      annotations.push({...tasks[idx],label:btn.dataset.value,timestamp:new Date().toISOString()});idx++;
-      if(idx<tasks.length) showTask(); else if(typesOrder.length) showDescription(); else downloadCSV();
+    document.getElementById('backBtn').addEventListener('click', ()=>{
+      if (idx>0) { idx--; annotations.pop(); showTask(); }
+    });
+
+    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5').forEach(btn=>btn.addEventListener('click', ()=>{
+      annotations.push({...tasks[idx], label: btn.dataset.value, timestamp: new Date().toISOString()});
+      idx++;
+      if (idx < tasks.length) showTask();
+      else if (typesOrder.length) showDescription();
+      else downloadCSV();
     }));
 
-    function downloadCSV(){ const cols=Object.keys(annotations[0]);const header=cols.join(',');const lines=annotations.map(r=>cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','));const csv=[header,...lines].join('\n');const blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`annotations_${Date.now()}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}  
+    function downloadCSV() {
+      const cols = Object.keys(annotations[0]);
+      const header = cols.join(',');
+      const lines = annotations.map(r=> cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','));
+      const csv = [header, ...lines].join('\n');
+      const blob = new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=url; a.download=`annotations_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
   </script>
 </body>
 </html>
