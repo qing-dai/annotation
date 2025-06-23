@@ -41,11 +41,11 @@
     <div id="description-text">Loading instructions…</div>
   </div>
 
-  <!-- Welcome card -->
-  <div class="card" id="welcomeCard">
-    <h1>Let's start annotation tasks!</h1>
-    <h2>Please click Begin to enter your name and proceed.</h2>
-    <div class="buttons"><button id="beginBtn" style="background:#1e90ff;">Begin</button></div>
+  <!-- Guidelines Card -->
+  <div class="card" id="guidelinesCard">
+    <h1 id="descTitle">High Confidence Tasks</h1>
+    <h2 id="description-text">These are questions the LLM is very confident about paragraph relevance. Please verify the relevance.</h2>
+    <div class="buttons"><button id="beginBtn" style="background:#1e90ff;">Begin Annotation</button></div>
   </div>
 
   <!-- Annotation card -->
@@ -70,33 +70,7 @@
   </div>
 
   <script>
-    let rows, allUserTasks, tasks, idx = 0, annotations = [], typesOrder = [], currentUser = '', currentType = '';
-
-    // Load Excel upfront
-    fetch('high_confidence_for_annotation_latex_fixed.xlsx')
-      .then(res => res.arrayBuffer())
-      .then(buffer => {
-        const wb = XLSX.read(buffer, {type:'array'});
-        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
-        rows = raw.map(r => Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
-      });
-
-    // Begin
-    document.getElementById('beginBtn').addEventListener('click', ()=>{
-      document.getElementById('welcomeCard').style.display = 'none';
-      askName();
-    });
-
-    function askName() {
-      currentUser = prompt('Please enter your Name:').trim().toLowerCase();
-      if (!currentUser) return;
-      allUserTasks = rows.filter(r => (r.name||'').trim().toLowerCase() === currentUser);
-      if (!allUserTasks.length) {
-        const names = [...new Set(rows.map(r=>r.name.trim()))].join(', ');
-        alert(`No tasks for “${currentUser}”. Found: ${names}`);
-        askName(); return;
-      }
-      typesOrder = [...new Set(allUserTasks.map(r=>r.task_type))]; idx = 0; annotations = [];
+    let rows, allUserTasks, tasks, idx = 0, annotations = [], typesOrder = ['high_conf','uncertain'].filter(t => allUserTasks.some(r => r.task_type === t)); idx = 0; annotations = [];
       showNextType();
     }
 
