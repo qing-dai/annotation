@@ -17,34 +17,34 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
-    body {margin:0; min-height:100vh; background:linear-gradient(135deg,#4f9ef6,#6bb9f0,#8ed1f5); font-family:'Montserrat',sans-serif; display:flex; flex-direction:column; align-items:center;}
-    .sticky-desc {position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.9); border-radius:8px; padding:12px 24px; max-width:800px; width:90vw; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.1);}    
-    .card {margin-top:160px; position:relative; background:white; border-radius:16px; padding:24px; max-width:800px; width:90vw; box-shadow:0 10px 30px rgba(0,0,0,0.1);}    
-    .card::before {content:''; position:absolute; top:-2px; left:-2px; right:-2px; bottom:-2px; background:linear-gradient(45deg,#ff6b6b,#feca57,#48dbfb); border-radius:18px; z-index:-1; filter:blur(8px); opacity:0.7;}    
-    h1, h2 {margin:0 0 16px; color:#2c3e50;}
-    h1 {font-family:'Playfair Display',serif; font-size:1.75rem;}
-    h2 {font-size:1.25rem; font-weight:400;}
-    #question {font-weight:500; color:#333; margin-bottom:12px;}
-    .paragraph {max-height:60vh; min-height:300px; overflow-y:auto; background:#f0f8ff; padding:12px; border-radius:8px; line-height:1.5; margin:16px 0; color:#444;}
-    .buttons {display:flex; gap:8px; margin-top:8px;}
-    .buttons button {flex:1; padding:12px; border:none; border-radius:8px; font-size:1rem; cursor:pointer; color:white; transition:transform .1s;}
-    .buttons button:active {transform:scale(.97);} .back-btn {background:#576574; margin-right:auto;}
-    .grade-1{background:#ff4757;} .grade-2{background:#ff9f43;} .grade-3{background:#f1c40f;} .grade-4{background:#1e90ff;} .grade-5{background:#2ed573;}
-    #finishCard {display:none; margin-top:160px; text-align:center; color:white;} #finishCard h1 {font-size:2rem; margin-bottom:16px;}
+    body {margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4f9ef6,#6bb9f0,#8ed1f5);overflow:hidden;font-family:'Montserrat',sans-serif;}
+    .card, .desc-card {position:relative;background:white;border-radius:16px;padding:24px;max-width:800px;width:90vw;box-shadow:0 10px 30px rgba(0,0,0,0.1);z-index:1;}
+    .card::before, .desc-card::before {content:'';position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;background:linear-gradient(45deg,#ff6b6b,#feca57,#48dbfb);border-radius:18px;z-index:-1;filter:blur(8px);opacity:0.7;}
+    h1 {margin:0 0 16px;color:#2c3e50;font-family:'Playfair Display',serif;font-size:1.75rem;}
+    #description-text{color:#333;line-height:1.5;}
+    #question{font-weight:500;color:#333;margin-bottom:12px;}
+    .paragraph{max-height:60vh;min-height:300px;overflow-y:auto;background:#f0f8ff;padding:12px;border-radius:8px;line-height:1.5;margin:16px 0;color:#444;}
+    .buttons{display:flex;gap:8px;margin-top:8px;}
+    .buttons button{flex:1;padding:12px;border:none;border-radius:8px;font-size:1rem;cursor:pointer;color:white;transition:transform .1s;}
+    .buttons button:active{transform:scale(.97);}
+    .grade-1{background:#ff4757;} .grade-2{background:#ff9f43;} .grade-3{background:#f1c40f;} .grade-4{background:#1e90ff;} .grade-5{background:#2ed573;} .back-btn{background:#576574;margin-right:auto;}
   </style>
 </head>
 <body>
+  <div class="blob one"></div><div class="blob two"></div>
+
   <!-- Welcome card -->
-  <div class="card" id="welcomeCard">
-    <h1>Let's start annotation tasks!</h1>
-    <h2>Please click “Begin” to start.</h2>
+  <div class="desc-card" id="welcomeCard">
+    <h1>Let's start annotation tasks! </h1>
+    <h2> Please pay attention to the description screen. </h2>
     <div class="buttons"><button id="beginBtn" style="background:#1e90ff;">Begin</button></div>
   </div>
 
-  <!-- Sticky description -->
-  <div class="sticky-desc" id="descriptionPanel" style="display:none;">
-    <h2 id="descTitle">Instructions</h2>
-    <div id="description-text">Loading instructions…</div>
+  <!-- Description card -->
+  <div class="desc-card" id="descCard" style="display:none;">
+    <h1 id="descTitle">Instructions</h1>
+    <div id="description-text"></div>
+    <div class="buttons"><button id="startBtn" style="background:#1e90ff;">Start Annotation</button></div>
   </div>
 
   <!-- Annotation card -->
@@ -62,71 +62,83 @@
     </div>
   </div>
 
-  <!-- Finish message -->
-  <div id="finishCard">
+    <!-- Finish message -->
+   <!-- Finish message -->
+  <div id="finishCard" style="display:none;">
     <h1>🎉 You have successfully finished the annotation! 🎉</h1>
     <p>Thank you for your contributions.</p>
   </div>
 
+
   <script>
     let rows, allUserTasks, tasks, idx = 0, annotations = [], typesOrder = [], currentUser = '', currentType = '';
 
+    // Load Excel but wait to ask name until Begin
     fetch('high_confidence_for_annotation_latex_fixed.xlsx')
-      .then(res=>res.arrayBuffer())
-      .then(buffer=>{
+      .then(res => res.arrayBuffer())
+      .then(buffer => {
         const wb = XLSX.read(buffer,{type:'array'});
         const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
-        rows = raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
+        rows = raw.map(r => Object.fromEntries(Object.entries(r).map(([k,v])=>[k.trim().toLowerCase(),v])));
       });
 
-    document.getElementById('beginBtn').addEventListener('click',()=>{
-      document.getElementById('welcomeCard').style.display='none';
+    // Begin button shows name prompt
+    document.getElementById('beginBtn').addEventListener('click', ()=>{
+      document.getElementById('welcomeCard').style.display = 'none';
       askName();
     });
 
     function askName() {
       currentUser = prompt('Please enter your Name:').trim().toLowerCase();
-      if(!currentUser) return;
-      allUserTasks = rows.filter(r=> (r.name||'').trim().toLowerCase()===currentUser);
-      if(!allUserTasks.length) { alert(`No tasks for “${currentUser}”.`); askName(); return; }
-      typesOrder = ['high_conf','uncertain'].filter(t=>allUserTasks.some(r=>r.task_type===t));
-      idx=0; annotations=[];
-      showNextType();
+      if (!currentUser) return;
+      allUserTasks = rows.filter(r => (r.name||'').trim().toLowerCase() === currentUser);
+      if (!allUserTasks.length) {
+        const names = [...new Set(rows.map(r=>r.name.trim()))].join(', ');
+        alert(`No tasks for “${currentUser}”. Found: ${names}`);
+        askName(); return;
+      }
+      typesOrder = [...new Set(allUserTasks.map(r=>r.task_type))]; idx = 0; annotations = [];
+      showDescription();
     }
 
-    function showNextType() {
+    function showDescription() {
       currentType = typesOrder.shift();
-      const title = currentType==='high_conf' ? 'High Confidence Tasks' : 'Uncertain Tasks';
-      const text  = currentType==='high_conf'
-        ? 'These are questions the LLM is very confident about paragraph relevance. Please verify the relevance.'
-        : 'These are questions the LLM is not sure about paragraph relevance. Think why they may be tricky.';
-      document.getElementById('descTitle').textContent = title;
-      document.getElementById('description-text').textContent = text;
-      document.getElementById('descriptionPanel').style.display='block';
-      tasks = allUserTasks.filter(r=>r.task_type===currentType);
-      idx=0; document.getElementById('annoCard').style.display='block'; showTask();
+      document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
+      document.getElementById('description-text').textContent = currentType==='uncertain'
+        ? 'These are the questions the large language model is not quite sure about paragraph relevance. During annotation, can you help to think why these questions can be tricky? I will appreciate your insights!'
+        : 'These are the questions that the LLM is very confident about paragraph relevance, we now want to get experts’ verification on relevance.';
+      document.getElementById('descCard').style.display = 'block';
+      document.getElementById('annoCard').style.display = 'none';
     }
+
+    document.getElementById('startBtn').addEventListener('click', ()=>{
+      tasks = allUserTasks.filter(r=>r.task_type===currentType); idx=0;
+      document.getElementById('descCard').style.display='none'; showTask();
+    });
 
     function showTask() {
-      const t = tasks[idx];
-      document.getElementById('question').textContent = t.question;
+      const t = tasks[idx]; document.getElementById('question').textContent = t.question;
       const para = document.getElementById('paragraph'); para.innerHTML = t.chunk_text;
       renderMathInElement(para,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}]});
-      document.getElementById('backBtn').disabled = idx===0;
+      document.getElementById('annoCard').style.display='block'; document.getElementById('backBtn').disabled = idx===0;
     }
 
-    document.getElementById('backBtn').addEventListener('click',()=>{ if(idx>0){idx--;annotations.pop();showTask();}});
-    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5').forEach(btn=>btn.addEventListener('click',()=>{
-      annotations.push({...tasks[idx],label:btn.dataset.value,timestamp:new Date().toISOString()}); idx++;
-      if(idx<tasks.length) showTask(); else if(typesOrder.length) showNextType(); else finish();
-    }));
+    document.getElementById('backBtn').addEventListener('click', ()=>{ if(idx>0){idx--;annotations.pop();showTask();}});
+    document.querySelectorAll('.grade-1,.grade-2,.grade-3,.grade-4,.grade-5')
+      .forEach(btn => btn.addEventListener('click', ()=>{
+        annotations.push({...tasks[idx],label:btn.dataset.value,timestamp:new Date().toISOString()}); idx++;
+        if(idx<tasks.length) showTask(); else if(typesOrder.length) showDescription(); else {
+             // Finished all types → show finish card, then download CSV
+          document.getElementById('annoCard').style.display = 'none';
+          document.getElementById('finishCard').style.display = 'block';
+          downloadCSV();
+        };
+      }));
 
-    function finish() {
-      const cols=Object.keys(annotations[0]), header=cols.join(',');
+    function downloadCSV(){ const cols=Object.keys(annotations[0]), header=cols.join(',');
       const lines=annotations.map(r=>cols.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','));
       const csv=[header,...lines].join('\n'), blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob), a=document.createElement('a');
-      a.href=url; a.download=`annotations_${Date.now()}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-      document.getElementById('annoCard').style.display='none'; document.getElementById('descriptionPanel').style.display='none'; document.getElementById('finishCard').style.display='block';
+      a.href=url; a.download=`annotations_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     }
   </script>
 </body>
