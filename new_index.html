@@ -105,8 +105,12 @@
       currentType = typesOrder.shift();
       document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
       document.getElementById('description-text').textContent = currentType==='uncertain'
-        ? 'These are the questions the large language model is not quite sure about paragraph (ir)relevance. During annotation, can you help to think why these questions can be tricky? I will appreciate your insights!'
-        : "These are the questions that the LLM is very confident about paragraph (ir)relevance. High confidence doesn't mean high accuracy, which may be problematic for any downstream work. We now want to get experts’ verification on (ir)relevance.";
+        ? `During the annotation, you will be given question–paragraph pairs. For each pair, please rate from 1,2,3,4,5, where 1 means "Irrelevant" and 5 means "Relevant". 2 and 4 are for partial (ir)relevance.
+        If you are unsure, please choose 3. You can always hit the "Back" button to revise your previous annotation. At the end, your annotations will be downloaded as a CSV file. Please send the file to me.
+        Thank you for your help!`
+        : `During the annotation, you will be given question–paragraph pairs. For each pair, please rate from 1,2,3,4,5, where 1 means "Irrelevant" and 5 means "Relevant". 2 and 4 are for partial (ir)relevance.
+        If you are unsure, please choose 3. You can always hit the "Back" button to revise your previous annotation. At the end, your annotations will be downloaded as a CSV file. Please send the file to me.
+        Thank you for your help!`;
       document.getElementById('descCard').style.display = 'block';
       document.getElementById('annoCard').style.display = 'none';
     }
