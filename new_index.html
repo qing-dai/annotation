@@ -103,14 +103,14 @@
 
     function showDescription() {
       currentType = typesOrder.shift();
-      document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Uncertain Tasks':'High Confidence Tasks';
-      document.getElementById('description-text').textContent = currentType==='uncertain'
-        ? `During the annotation, you will be given question–paragraph pairs. For each pair, please rate from 1,2,3,4,5, where 1 means "Irrelevant" and 5 means "Relevant". 2 and 4 are for partial (ir)relevance.
-        If you are unsure, please choose 3. You can always hit the "Back" button to revise your previous annotation. At the end, your annotations will be downloaded as a CSV file. Please send the file to me.
-        Thank you for your help!`
-        : `During the annotation, you will be given question–paragraph pairs. For each pair, please rate from 1,2,3,4,5, where 1 means "Irrelevant" and 5 means "Relevant". 2 and 4 are for partial (ir)relevance.
-        If you are unsure, please choose 3. You can always hit the "Back" button to revise your previous annotation. At the end, your annotations will be downloaded as a CSV file. Please send the file to me.
-        Thank you for your help!`;
+      document.getElementById('descTitle').textContent = currentType==='uncertain'? 'Annotation Tasks':'Annotation Tasks';
+      const descHtml = `
+        <p>During the annotation you'll be shown question–paragraph pairs.</p>
+        <p>For each pair, rate from <strong>1–5</strong>: <strong>1</strong> = Irrelevant, <strong>5</strong> = Relevant. Use <strong>2</strong> and <strong>4</strong> for partial (ir)relevance.</p>
+        <p>If you're unsure, choose <strong>3</strong>. You can use the "Back" button to revise a previous annotation.</p>
+        <p>At the end, your annotations will be downloaded as a CSV file — please send the file to me.</p>
+        <p>Thank you for your help!</p>`;
+      document.getElementById('description-text').innerHTML = descHtml;
       document.getElementById('descCard').style.display = 'block';
       document.getElementById('annoCard').style.display = 'none';
     }
